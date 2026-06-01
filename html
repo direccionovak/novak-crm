@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Novak CRM</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+</head>
+<body style="margin:0;background:#111;font-family:'Outfit',sans-serif;color:#fff">
+<div id="root"></div>
+<script type="text/babel">
+const App = () => {
+  const [tab, setTab] = React.useState("leads");
+  const [leads, setLeads] = React.useState([
+    {id:1,nombre:"Jorge Ramírez",telefono:"3101234567",email:"jorge@email.com",interes:"Casa",presupuesto:"250000000",fuente:"Redes Sociales",asesor:"Carlos Mendoza",etapa:"Interesado",fecha:"2026-05-20",notas:"Busca casa con jardín.",fechaInscripcion:"2026-05-21",fechaFirma:"",fechaPago:""},
+    {id:2,nombre:"Patricia Lozano",telefono:"3209876543",email:"pat@email.com",interes:"Apartamento",presupuesto:"180000000",fuente:"Referido",asesor:"Ana Reyes",etapa:"Negociación",fecha:"2026-05-22",notas:"Piso 3 o superior.",fechaInscripcion:"2026-05-23",fechaFirma:"2026-05-25",fechaPago:""},
+  ]);
+  const [modal, setModal] = React.useState(null);
+  const [form, setForm] = React.useState({});
+  const etapas = ["Nuevo","Contactado","Interesado","Negociación","Cerrado","Perdido"];
+  const colores = {"Nuevo":"#FFC107","Contactado":"#3B82F6","Interesado":"#8B5CF6","Negociación":"#F97316","Cerrado":"#22C55E","Perdido":"#EF4444"};
+
+  const abrirForm = (lead) => {
+    setForm(lead || {nombre:"",telefono:"",email:"",interes:"Casa",presupuesto:"",fuente:"Redes Sociales",asesor:"",etapa:"Nuevo",fecha:new Date().toISOString().slice(0,10),notas:"",fechaInscripcion:"",fechaFirma:"",fechaPago:""});
+    setModal("form");
+  };
+
+  const guardar = () => {
+    if(!form.nombre||!form.telefono) return alert("Nombre y teléfono son requeridos");
+    if(form.id) setLeads(l=>l.map(x=>x.id===form.id?form:x));
+    else setLeads(l=>[...l,{...form,id:Date.now()}]);
+    setModal(null);
+  };
+
+  const inp = {width:"100%",boxSizing:"border-box",background:"#111",border:"1.5px solid #2a2a2a",borderRadius:8,padding:"9px 12px",color:"#fff",fontSize:13,fontFamily:"Outfit,sans-serif",outline:"none",marginBottom:10};
+
+  return (
+    <div style={{display:"flex",minHeight:"100vh"}}>
+      {/* SIDEBAR */}
+      <div style={{width:200,background:"#141414",borderRight:"1px solid #1e1e1e",display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"20px 16px",borderBottom:"1px solid #1e1e1e",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:36,height:36,background:"#FFC107",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#111",fontSize:18}}>N</div>
+          <div>
+            <div style={{fontWeight:900,fontSize:13,letterSpacing:2}}>NOVAK</div>
+            <div style={{fontSize:8,color:"#555",letterSpacing:2}}>CRM</div>
+          </div>
+        </div>
+        {[{id:"leads",label:"Clientes"},{id:"reportes",label:"Reportes"}].map(n=>(
+          <button key={n.id} onClick={()=>setTab(n.id)} style={{width:"100%",padding:"12px 16px",border:"none",background:tab===n.id?"#FFC10718":"transparent",color:tab===n.id?"#FFC107":"#555",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left",borderLeft:tab===n.id?"3px solid #FFC107":"3px solid transparent",fontFamily:"Outfit,sans-serif"}}>
+            {n.label}
+          </button>
+        ))}
+      </div>
+
+      {/* MAIN */}
+      <div style={{flex:1,padding:28,overflowY:"auto"}}>
+        {tab==="leads" && (
+          <>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <div>
+                <h1 style={{margin:0,fontSize:22,fontWeight:900}}>Clientes Potenciales</h1>
+                <p style={{margin:"4px 0 0",color:"#555",fontSize:13}}>{leads.length} clientes</p>
+              </div>
+              <button onClick={()=>abrirForm()} style={{background:"#FFC107",color:"#111",fontWeight:800,border:"none",borderRadius:9,padding:"10px 20px",cursor:"pointer",fontSize:13,fontFamily:"Outfit,sans-serif"}}>+ Nuevo Cliente</button>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
+              {[{l:"TOTAL",v:leads.length,c:"#FFC107"},{l:"NUEVOS",v:leads.filter(x=>x.etapa==="Nuevo").length,c:"#3B82F6"},{l:"EN PROCESO",v:leads.filter(x=>["Contactado","Interesado","Negociación"].includes(x.etapa)).length,c:"#8B5CF6"},{l:"CERRADOS",v:leads.filter(x=>x.etapa==="Cerrado").length,c:"#22C55E"}].map(s=>(
+                <div key={s.l} style={{background:"#181818",border:"1px solid #272727",borderRadius:12,padding:"16px 20px",borderTop:`3px solid ${s.c}`}}>
+                  <div style={{fontSize:28,fontWeight:900,color:s.c}}>{s.v}</div>
+                  <div style={{fontSize:10,color:"#444",letterSpacing:1.5}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {leads.map(lead=>(
+                <div key={lead.id} onClick={()=>{setForm(lead);setModal("detalle");}} style={{background:"#181818",border:"1px solid #272727",borderRadius:12,padding:"14px 20px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+                  <div style={{width:40,height:40,borderRadius:"50%",background:"#FFC10718",border:"2px solid #FFC107",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#FFC107",fontSize:16}}>{lead.nombre.charAt(0)}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:14}}>{lead.nombre}</div>
+                    <div style={{fontSize:11,color:"#555"}}>{lead.telefono} · {lead.asesor}</div>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:20,background:(colores[lead.etapa]||"#888")+"22",color:colores[lead.etapa]||"#888"}}>{lead.etapa}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {tab==="reportes" && (
+          <div>
+            <h1 style={{margin:"0 0 20px",fontSize:22,fontWeight:900}}>Reportes</h1>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
+              {etapas.map(e=>(
+                <div key={e} style={{background:"#181818",border:"1px solid #272727",borderRadius:12,padding:"16px 20px"}}>
+                  <div style={{fontSize:24,fontWeight:900,color:colores[e]||"#888"}}>{leads.filter(l=>l.etapa===e).length}</div>
+                  <div style={{fontSize:12,color:"#555",marginTop:4}}>{e}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* MODAL DETALLE */}
+      {modal==="detalle" && (
+        <div style={{position:"fixed",inset:0,background:"#000c",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+          <div style={{background:"#181818",border:"1px solid #272727",borderRadius:14,width:"100%",maxWidth:500,maxHeight:"90vh",overflowY:"auto",padding:24}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
+              <div style={{fontWeight:800,fontSize:17,color:"#FFC107"}}>{form.nombre}</div>
+              <button onClick={()=>setModal(null)} style={{background:"none",border:"none",color:"#555",cursor:"pointer",fontSize:22}}>×</button>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+              {[{l:"Teléfono",v:form.telefono},{l:"Email",v:form.email||"—"},{l:"Interés",v:form.interes},{l:"Asesor",v:form.asesor},{l:"Fuente",v:form.fuente},{l:"Etapa",v:form.etapa}].map(f=>(
+                <div key={f.l} style={{background:"#111",borderRadius:8,padding:"10px 12px"}}>
+                  <div style={{fontSize:10,color:"#555",marginBottom:3}}>{f.l}</div>
+                  <div style={{fontSize:13,fontWeight:600,color:"#ccc"}}>{f.v}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:10,color:"#555",marginBottom:8}}>CAMBIAR ETAPA</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {etapas.map(e=>(
+                  <button key={e} onClick={()=>{setLeads(l=>l.map(x=>x.id===form.id?{...x,etapa:e}:x));setForm(f=>({...f,etapa:e}));}} style={{fontSize:12,fontWeight:700,padding:"5px 12px",borderRadius:20,border:`2px solid ${form.etapa===e?colores[e]:"#333"}`,background:form.etapa===e?colores[e]+"22":"transparent",color:form.etapa===e?colores[e]:"#555",cursor:"pointer",fontFamily:"Outfit,sans-serif"}}>{e}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>abrirForm(form)} style={{flex:1,background:"#FFC107",color:"#111",fontWeight:800,border:"none",borderRadius:9,padding:12,cursor:"pointer",fontFamily:"Outfit,sans-serif"}}>✏️ Editar</button>
+              <button onClick={()=>{if(confirm("¿Eliminar?"))setLeads(l=>l.filter(x=>x.id!==form.id));setModal(null);}} style={{background:"#EF444418",color:"#EF4444",fontWeight:700,border:"1px solid #EF444433",borderRadius:9,padding:"12px 16px",cursor:"pointer",fontFamily:"Outfit,sans-serif"}}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FORM */}
+      {modal==="form" && (
+        <div style={{position:"fixed",inset:0,background:"#000c",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+          <div style={{background:"#181818",border:"1px solid #272727",borderRadius:14,width:"100%",maxWidth:540,maxHeight:"92vh",overflowY:"auto",padding:24}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:20}}>
+              <div style={{fontWeight:800,fontSize:16,color:"#FFC107"}}>{form.id?"Editar Cliente":"Nuevo Cliente"}</div>
+              <button onClick={()=>setModal(null)} style={{background:"none",border:"none",color:"#555",cursor:"pointer",fontSize:22}}>×</button>
+            </div>
+            {[{l:"NOMBRE *",k:"nombre",p:"Juan Pérez"},{l:"TELÉFONO *",k:"telefono",p:"300 000 0000"},{l:"EMAIL",k:"email",p:"correo@email.com"},{l:"ASESOR",k:"asesor",p:"Nombre del asesor"},{l:"PRESUPUESTO",k:"presupuesto",p:"250000000"},{l:"NOTAS",k:"notas",p:"Observaciones..."}].map(f=>(
+              <div key={f.k}>
+                <div style={{fontSize:10,color:"#555",letterSpacing:1,marginBottom:4}}>{f.l}</div>
+                <input value={form[f.k]||""} onChange={e=>setForm(x=>({...x,[f.k]:e.target.value}))} placeholder={f.p} style={inp}/>
+              </div>
+            ))}
+            {[{l:"TIPO DE INMUEBLE",k:"interes",opts:["Casa","Apartamento","Local Comercial","Lote","Oficina"]},{l:"FUENTE",k:"fuente",opts:["Redes Sociales","Referido","Página Web","Llamada","Visita","Otro"]},{l:"ETAPA",k:"etapa",opts:etapas}].map(f=>(
+              <div key={f.k}>
+                <div style={{fontSize:10,color:"#555",letterSpacing:1,marginBottom:4}}>{f.l}</div>
+                <select value={form[f.k]||""} onChange={e=>setForm(x=>({...x,[f.k]:e.target.value}))} style={{...inp,color:"#ccc"}}>
+                  {f.opts.map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+            ))}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+              {[{l:"INSCRIPCIÓN",k:"fechaInscripcion"},{l:"FIRMA",k:"fechaFirma"},{l:"PAGO",k:"fechaPago"}].map(f=>(
+                <div key={f.k}>
+                  <div style={{fontSize:10,color:"#555",letterSpacing:1,marginBottom:4}}>{f.l}</div>
+                  <input type="date" value={form[f.k]||""} onChange={e=>setForm(x=>({...x,[f.k]:e.target.value}))} style={{...inp,color:"#ccc"}}/>
+                </div>
+              ))}
+            </div>
+            <button onClick={guardar} style={{width:"100%",background:"#FFC107",color:"#111",fontWeight:800,border:"none",borderRadius:10,padding:14,cursor:"pointer",fontSize:15,fontFamily:"Outfit,sans-serif",marginTop:8}}>
+              {form.id?"Guardar cambios":"Registrar Cliente"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
+Dime cuando lo hayas pegado.Has dicho: en donde lo pegoen donde lo pego13:35Claude ha respondido: En el área grande blanca del editor donde dice "Enter file contents here".En el área grande blanca del editor donde dice "Enter file contents here". Haz clic ahí y pega el código con Cmd+V.
